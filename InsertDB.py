@@ -23,13 +23,13 @@ metaedge_to_relationship = {
     'AuG': 'Upregulates',
     'AdG': 'Downregulates',
     'AeG': 'Expresses',
-    'GrG': 'Regulates',
+    'Gr>G': 'Regulates',
     'GcG': 'Covariates',
     'GiG': 'Interacts'
 }
 
 def insert_nodes():
-    nodes_file = "data/sample_nodes.tsv"  
+    # nodes_file = "data/sample_nodes.tsv"  
     nodes_df = pd.read_csv(nodes_file, sep="\t", skiprows=1, header=None, names=["full_id", "name", "kind"])
 
     with driver.session() as session:
@@ -60,7 +60,7 @@ def insert_nodes():
 
 
 def insert_edges():
-    edges_file = "data/sample_edges.tsv"
+    # edges_file = "data/sample_edges.tsv"
 
     if not os.path.exists(edges_file):
         print(f"Error: File {edges_file} not found!")
@@ -75,13 +75,11 @@ def insert_edges():
             target_id = row["full_target"]
             metaedge = row["metaedge"]
 
-            print(source_id, target_id, metaedge)
             # Determine the appropriate relationship type from metaedge
             if metaedge in metaedge_to_relationship:
                 relation_type = metaedge_to_relationship[metaedge]
             else:
-                print(f"Warning: Metaedge {metaedge} not recognized!")
-                continue
+                raise Exception(f"Warning: Metaedge {metaedge} not recognized!")
             # Append the edge data to the batch
             batch.append({
                 "source_id": source_id, 
