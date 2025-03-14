@@ -8,27 +8,44 @@ BATCH_SIZE = 10000
 nodes_file = "data/nodes.tsv"  
 edges_file = "data/edges.tsv"  
 
+metaedge_to_relationship = {
+    'CrC': 'Resembles',
+    'CtD': 'Treats',
+    'CpD': 'Palliates',
+    'CbG': 'Binds',
+    'CuG': 'Upregulates',
+    'CdG': 'Downregulates',
+    'DrD': 'Resembles',
+    'DuG': 'Upregulates',
+    'DdG': 'Downregulates',
+    'DaG': 'Associates',
+    'DlA': 'Localizes',
+    'AuG': 'Upregulates',
+    'AdG': 'Downregulates',
+    'AeG': 'Expresses',
+    'GrG': 'Regulates',
+    'GcG': 'Covariates',
+    'GiG': 'Interacts'
+}
+
 def insert_nodes():
     nodes_file = "data/sample_nodes.tsv"  
     nodes_df = pd.read_csv(nodes_file, sep="\t", skiprows=1, header=None, names=["full_id", "name", "kind"])
 
     with driver.session() as session:
         for _, row in nodes_df.iterrows():
-            full_id = row["full_id"]
+            node_id = row["full_id"]
             name = row["name"]
             kind = row["kind"]
 
-            # detect n determine the id
-            category, node_id = full_id.split("::", 1)  
-
             # Validate and assign proper labels
-            if category == "Anatomy":
+            if kind == "Anatomy":
                 label = "Anatomy"
-            elif category == "Disease":
+            elif kind == "Disease":
                 label = "Disease"
-            elif category == "Gene":
+            elif kind == "Gene":
                 label = "Gene"
-            elif category == "Compound":
+            elif kind == "Compound":
                 label = "Compound"
 
             # Insert into Neo4j
@@ -41,6 +58,7 @@ def insert_nodes():
     
     print("Inserted nodes successfully.")
 
+
 def insert_edges():
     edges_file = "data/sample_edges.tsv"
 
@@ -49,44 +67,59 @@ def insert_edges():
         return
 
     edges_df = pd.read_csv(edges_file, sep="\t", skiprows=1, header=None, names=["full_source", "metaedge", "full_target"])
-    
     with driver.session() as session:
         batch = []
         for _, row in edges_df.iterrows():
-           
-            source_category, source_id = row["full_source"].split("::", 1)
-            target_category, target_id = row["full_target"].split("::", 1)
-            relation_type = row["metaedge"]
+            # Extract source and target categories and IDs
+            source_id = row["full_source"]
+            target_id = row["full_target"]
+            metaedge = row["metaedge"]
 
-            batch.append({"source_id": source_id, "target_id": target_id, "relation_type": relation_type})
-
+            print(source_id, target_id, metaedge)
+            # Determine the appropriate relationship type from metaedge
+            if metaedge in metaedge_to_relationship:
+                relation_type = metaedge_to_relationship[metaedge]
+            else:
+                print(f"Warning: Metaedge {metaedge} not recognized!")
+                continue
+            # Append the edge data to the batch
+            batch.append({
+                "source_id": source_id, 
+                "target_id": target_id, 
+                "relation_type": relation_type
+            })
             
-            if len(batch) >= BATCH_SIZE:
-                session.run(
-                    """
-                    UNWIND $batch AS edge
-                    MATCH (a {id: edge.source_id})
-                    MATCH (b {id: edge.target_id})
-                    MERGE (a)-[r:RELATIONSHIP {type: edge.relation_type}]->(b)
-                    """,
-                    batch=batch
-                )
-                batch = []  # Clear batch
+            # # Once batch size exceeds limit, insert the batch into Neo4j
+            # if len(batch) >= BATCH_SIZE:
+            #     query = f"""
+            #     UNWIND $batch AS edge
+            #     MATCH (a {{id: edge.source_id}})
+            #     MATCH (b {{id: edge.target_id}})
+            #     MERGE (a)-[r:{relation_type} {{metaedge: $metaedge}}]->(b)
+            #     """
+            #     session.run(
+            #         query,
+            #         batch=batch,
+            #         metaedge=metaedge
+            #     )
+            #     batch = []  # Clear batch after insertion
 
-        # Insert remaining edges if any
-        if batch:
-            session.run(
-                """
+            # Insert any remaining edges if the batch is not empty
+            if batch:
+                query = f"""
                 UNWIND $batch AS edge
-                MATCH (a {id: edge.source_id})
-                MATCH (b {id: edge.target_id})
-                MERGE (a)-[r:RELATIONSHIP {type: edge.relation_type}]->(b)
-                """,
-                batch=batch
-            )
-
+                MATCH (a {{id: edge.source_id}})
+                MATCH (b {{id: edge.target_id}})
+                MERGE (a)-[r:{relation_type} {{metaedge: $metaedge}}]->(b)
+                """
+                session.run(
+                    query,
+                    batch=batch,
+                    metaedge=metaedge
+                )
+                batch = []
     print("Edges inserted successfully.")
 if __name__ == "__main__":
-    #insert_nodes()
+    insert_nodes()
     insert_edges()
     print("Data insertion completed successfully!")

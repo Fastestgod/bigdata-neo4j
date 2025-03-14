@@ -9,4 +9,5 @@ def get_driver():
 
 if __name__ == "__main__":
     driver = get_driver()
-    print("Connected to Neo4j successfully!")
+    driver.verify_connectivity()
+    print("Connection established.")
