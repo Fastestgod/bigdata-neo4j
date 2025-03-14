@@ -29,7 +29,7 @@ metaedge_to_relationship = {
 }
 
 def insert_nodes():
-    # nodes_file = "data/sample_nodes.tsv"  
+    nodes_file = "data/sample_nodes.tsv"  
     nodes_df = pd.read_csv(nodes_file, sep="\t", skiprows=1, header=None, names=["full_id", "name", "kind"])
 
     with driver.session() as session:
@@ -60,7 +60,7 @@ def insert_nodes():
 
 
 def insert_edges():
-    # edges_file = "data/sample_edges.tsv"
+    edges_file = "data/sample_edges.tsv"
 
     if not os.path.exists(edges_file):
         print(f"Error: File {edges_file} not found!")
@@ -84,38 +84,39 @@ def insert_edges():
             batch.append({
                 "source_id": source_id, 
                 "target_id": target_id, 
-                "relation_type": relation_type
+                "relation_type": relation_type,
+                "metaedge": metaedge
             })
             
-            # # Once batch size exceeds limit, insert the batch into Neo4j
-            # if len(batch) >= BATCH_SIZE:
-            #     query = f"""
-            #     UNWIND $batch AS edge
-            #     MATCH (a {{id: edge.source_id}})
-            #     MATCH (b {{id: edge.target_id}})
-            #     MERGE (a)-[r:{relation_type} {{metaedge: $metaedge}}]->(b)
-            #     """
-            #     session.run(
-            #         query,
-            #         batch=batch,
-            #         metaedge=metaedge
-            #     )
-            #     batch = []  # Clear batch after insertion
-
-            # Insert any remaining edges if the batch is not empty
-            if batch:
-                query = f"""
+            # Once batch size exceeds limit, insert the batch into Neo4j
+            if len(batch) >= BATCH_SIZE:
+                query = """
                 UNWIND $batch AS edge
-                MATCH (a {{id: edge.source_id}})
-                MATCH (b {{id: edge.target_id}})
-                MERGE (a)-[r:{relation_type} {{metaedge: $metaedge}}]->(b)
+                MATCH (a {id: edge.source_id})
+                MATCH (b {id: edge.target_id})
+                CALL apoc.create.relationship(a, edge.relation_type, {metaedge: edge.metaedge}, b) YIELD rel
+                RETURN rel
                 """
+
                 session.run(
                     query,
-                    batch=batch,
-                    metaedge=metaedge
+                    batch=batch
                 )
-                batch = []
+                batch = []  # Clear batch after insertion
+
+        # Insert any remaining edges if the batch is not empty
+        if batch:  
+            query = """
+            UNWIND $batch AS edge
+            MATCH (a {id: edge.source_id})
+            MATCH (b {id: edge.target_id})
+            CALL apoc.create.relationship(a, edge.relation_type, {metaedge: edge.metaedge}, b) YIELD rel
+            RETURN rel
+            """
+            session.run(
+                query,
+                batch=batch
+            )
     print("Edges inserted successfully.")
 if __name__ == "__main__":
     insert_nodes()
