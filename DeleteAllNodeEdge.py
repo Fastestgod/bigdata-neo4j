@@ -1,10 +1,7 @@
 from neo4j import GraphDatabase
+from Neo4jSetup import get_driver
 
-# Initialize Neo4j driver
-uri = "bolt://localhost:7687"  # Adjust if your Neo4j instance is elsewhere
-username = "neo4j"  # Default username for Neo4j
-password = "project123"  # Replace with your actual password
-driver = GraphDatabase.driver(uri, auth=(username, password))
+driver = get_driver()
 
 def delete_all_nodes_and_edges():
     with driver.session() as session:

@@ -30,7 +30,7 @@ def query_disease(disease_id):
 
 # GUI Function
 def search():
-    disease_id = entry.get()
+    disease_id = "Disease::DOID:" + str(entry.get())
     if not disease_id:
         messagebox.showwarning("Input Error", "Please enter a Disease ID.")
         return
