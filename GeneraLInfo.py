@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox, Scrollbar, Text
 from neo4j import GraphDatabase
 from Neo4jSetup import get_driver
+import argparse
+import threading
 
 # Create a Neo4j driver instance
 driver = get_driver()
@@ -21,12 +23,20 @@ def query_disease(disease_id):
     with get_driver().session() as session:
         result = session.run(query, disease_id=disease_id).single()
         if result:
+            print(
+                {f"Disease Name": result["disease_name"],
+                "Drugs": ", ".join(result["drugs"]),
+                "Genes": ", ".join(result["genes"]),
+                "Locations": ", ".join(result["locations"]),
+                })
             return {
                 "Disease Name": result["disease_name"],
                 "Drugs": ", ".join(result["drugs"]),
                 "Genes": ", ".join(result["genes"]),
                 "Locations": ", ".join(result["locations"]),
             }
+            
+        print("nothing")
         return None
 #query 2
 def run_query():
@@ -51,7 +61,7 @@ def run_query():
         for record in results:
             compound_name = record["c.name"]
             compound_names.append(compound_name)
-        
+        print("\n".join(compound_names) if compound_names else "No new drugs found.")
         return "\n".join(compound_names) if compound_names else "No new drugs found."
 # GUI Function
 def search():
@@ -125,3 +135,19 @@ output_text.pack()
 
 
 root.mainloop()
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Run Neo4j Queries")
+parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
+parser.add_argument("-q2", action="store_true", help="Run Query 2")
+parser.add_argument("-id", type=str, help="Disease ID for Query 1")
+
+args = parser.parse_args()
+
+# Execute the selected query
+if args.q1 and args.id:
+    query_disease(args.id)
+elif args.q2:
+    run_query()
+else:
+    print("Usage: script.py -q1 -id <disease_id> OR script.py -q2")
