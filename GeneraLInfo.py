@@ -1,8 +1,9 @@
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, Scrollbar, Text
 from neo4j import GraphDatabase
 from Neo4jSetup import get_driver
+
 # Create a Neo4j driver instance
 driver = get_driver()
 
@@ -27,7 +28,31 @@ def query_disease(disease_id):
                 "Locations": ", ".join(result["locations"]),
             }
         return None
-
+#query 2
+def run_query():
+    query = f"""
+    MATCH (c:Compound)-[r:Upregulates]->(g:Gene),
+    (d:Disease)-[r3:Localizes]->(a:Anatomy),
+          (a:Anatomy)-[r2:Downregulates]->(g:Gene)
+    WHERE NOT (c)-[:Treats|Palliates]->(:Disease)
+    RETURN c.name
+    UNION DISTINCT
+    MATCH (c:Compound)-[r:Downregulates]->(g:Gene),
+    (d:Disease)-[r3:Localizes]->(a:Anatomy),
+        (a:Anatomy)-[r2:Upregulates]->(g:Gene)
+    WHERE NOT (c)-[:Treats|Palliates]->(:Disease)
+    RETURN c.name
+    """
+    
+    with driver.session() as session:
+        results = session.run(query)
+        
+        compound_names = []
+        for record in results:
+            compound_name = record["c.name"]
+            compound_names.append(compound_name)
+        
+        return "\n".join(compound_names) if compound_names else "No new drugs found."
 # GUI Function
 def search():
     disease_id = "Disease::DOID:" + str(entry.get())
@@ -36,26 +61,67 @@ def search():
         return
 
     result = query_disease(disease_id)
+    
+    # Clear the existing content in the Text widget
+    output_text.delete(1.0, tk.END)
+
     if result:
-        output_text.set(
+        # Insert the result into the Text widget
+        output_text.insert(tk.END, 
             f"Disease Name: {result['Disease Name']}\n"
             f"Drugs: {result['Drugs']}\n"
             f"Genes: {result['Genes']}\n"
             f"Locations: {result['Locations']}"
         )
     else:
-        output_text.set("No data found.")
+        output_text.insert(tk.END, "No data found.")
+
+def new_drugs():
+    result = run_query()
+    
+    # Update the output text label with the results
+    output_text.delete(1.0, tk.END)  # Clear the existing content in the Text widget
+    all_new_drugs=(f"New drugs for diseases:\n\n{result}")
+    output_text.insert(tk.END, all_new_drugs)  # Insert the new drugs into the Text widget
+    
 
 # GUI Setup
 root = tk.Tk()
 root.title("Disease Query")
 
+# Disease ID input
 tk.Label(root, text="Enter Disease ID:").pack()
 entry = tk.Entry(root)
 entry.pack()
 
+# Search button
 tk.Button(root, text="Search", command=search).pack()
-output_text = tk.StringVar()
-tk.Label(root, textvariable=output_text, wraplength=400, justify="left").pack()
+
+# New Drugs button
+tk.Button(root, text="Find New Drugs", command=new_drugs).pack()
+
+# Frame for the scrollable text area
+output_frame = tk.Frame(root)
+output_frame.pack(padx=10, pady=10)
+
+# Create a canvas and a scrollbar
+canvas = tk.Canvas(output_frame)
+scrollbar = ttk.Scrollbar(output_frame, orient="vertical", command=canvas.yview)
+canvas.configure(yscrollcommand=scrollbar.set)
+
+# Create a frame inside the canvas to hold the output text
+output_container = tk.Frame(canvas)
+
+# Add the frame to the canvas
+canvas.create_window((0, 0), window=output_container, anchor="nw")
+
+canvas.pack(side="left", fill="both", expand=True)
+
+# Create a Text widget for displaying the output
+output_text = tk.Text(output_container, wrap="word", height=10, width=50)
+output_text.pack()
+
+# Update the scroll region when the output text changes
+
 
 root.mainloop()
