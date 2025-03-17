@@ -29,9 +29,7 @@ metaedge_to_relationship = {
 }
 
 def insert_nodes():
-    #nodes_file = "data/sample_nodes.tsv"  
     nodes_df = pd.read_csv(nodes_file, sep="\t", skiprows=1, header=None, names=["full_id", "name", "kind"])
-
     with driver.session() as session:
         # batch = []
         for _, row in nodes_df.iterrows():
@@ -48,26 +46,7 @@ def insert_nodes():
                 label = "Gene"
             elif kind == "Compound":
                 label = "Compound"
-
-            # # Append the edge data to the batch
-            # batch.append({
-            #     "node_id": node_id, 
-            #     "name": name, 
-            #     "kind": kind
-            # })
-
-            # Once batch size exceeds limit, insert the batch into Neo4j
-            # if len(batch) >= BATCH_SIZE:
-            #     query = """
-            #     UNWIND $batch AS edge
-            #     MERGE (n:{label} {{id: $id, name: $name}})
-            #     """
-
-            #     session.run(
-            #         query,
-            #         batch=batch
-            #     )
-            #     batch = []  # Clear batch after insertion
+                
             # Insert into Neo4j
             session.run(
                 f"""
@@ -80,7 +59,6 @@ def insert_nodes():
 
 
 def insert_edges():
-    # edges_file = "data/sample_edges.tsv"
     if not os.path.exists(edges_file):
         print(f"Error: File {edges_file} not found!")
         return
