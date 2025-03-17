@@ -16,7 +16,7 @@ def query_disease(disease_id):
            COLLECT(DISTINCT gene.name) AS genes,
            COLLECT(DISTINCT location.name) AS locations
     """
-    with get_driver().session() as session:
+    with driver.session() as session:
         result = session.run(query, disease_id=disease_id).single()
         if result:
             print(
