@@ -81,23 +81,15 @@ def run_query():
         output_text.insert(tk.END, "No data found.")
 
 
-# GUI Setup
-
-def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Run Neo4j Queries")
-    parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
-    parser.add_argument("-q2", action="store_true", help="Run Query 2")
-    parser.add_argument("-i"d, type=str, help="Disease ID for Query 1")
-    args = parser.parse_args()
-
-    if args.q1 and args.id:
-        query_disease(args.id)
-    elif args.q2:
-        run_query()
-    elif args.gui:
-        use_gui()
-    else:
-        print("Usage: GeneraLInfo.py -q1 -id <disease_id> OR GeneraLInfo.py -q2")
-if '__name__' == '__main__':
-    main()
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Run Neo4j Queries")
+parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
+parser.add_argument("-q2", action="store_true", help="Run Query 2")
+parser.add_argument("-id", type=str, help="Disease ID for Query 1")
+args = parser.parse_args()
+if args.q1 and args.id:
+    query_disease(args.id)
+elif args.q2:
+    run_query()
+else:
+    print("Usage: GeneraLInfo.py -q1 -id <disease_id> OR GeneraLInfo.py -q2")
