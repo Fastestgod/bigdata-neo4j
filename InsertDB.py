@@ -70,7 +70,6 @@ def insert_edges():
     with driver.session() as session:
         batch = []
         for _, row in edges_df.iterrows():
-            # Extract source and target categories and IDs
             source_id = row["full_source"]
             target_id = row["full_target"]
             metaedge = row["metaedge"]

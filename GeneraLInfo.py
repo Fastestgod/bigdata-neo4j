@@ -93,49 +93,25 @@ def new_drugs():
     output_text.delete(1.0, tk.END)  # Clear the existing content in the Text widget
     all_new_drugs=(f"New drugs for diseases:\n\n{result}")
     output_text.insert(tk.END, all_new_drugs)  # Insert the new drugs into the Text widget
-    
-
 # GUI Setup
 root = tk.Tk()
 root.title("Disease Query")
-
-# Disease ID input
 tk.Label(root, text="Enter Disease ID:").pack()
 entry = tk.Entry(root)
 entry.pack()
-
-# Search button
 tk.Button(root, text="Search", command=search).pack()
-
-# New Drugs button
 tk.Button(root, text="Find New Drugs", command=new_drugs).pack()
-
-# Frame for the scrollable text area
 output_frame = tk.Frame(root)
 output_frame.pack(padx=10, pady=10)
-
-# Create a canvas and a scrollbar
 canvas = tk.Canvas(output_frame)
 scrollbar = ttk.Scrollbar(output_frame, orient="vertical", command=canvas.yview)
 canvas.configure(yscrollcommand=scrollbar.set)
-
-# Create a frame inside the canvas to hold the output text
 output_container = tk.Frame(canvas)
-
-# Add the frame to the canvas
 canvas.create_window((0, 0), window=output_container, anchor="nw")
-
 canvas.pack(side="left", fill="both", expand=True)
-
-# Create a Text widget for displaying the output
 output_text = tk.Text(output_container, wrap="word", height=10, width=50)
 output_text.pack()
-
-# Update the scroll region when the output text changes
-
-
 root.mainloop()
-
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Run Neo4j Queries")
 parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
@@ -144,7 +120,6 @@ parser.add_argument("-id", type=str, help="Disease ID for Query 1")
 
 args = parser.parse_args()
 
-# Execute the selected query
 if args.q1 and args.id:
     query_disease(args.id)
 elif args.q2:
