@@ -1,11 +1,7 @@
-import os
 import tkinter as tk
-from tkinter import ttk, messagebox, Scrollbar, Text
-from neo4j import GraphDatabase
+from tkinter import ttk, messagebox
 from Neo4jSetup import get_driver
 import argparse
-import threading
-
 # Create a Neo4j driver instance
 driver = get_driver()
 
