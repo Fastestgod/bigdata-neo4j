@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 from Neo4jSetup import get_driver
 from GeneraLInfo import query_disease,run_query
 
-
 # GUI Function
 def search():
     disease_id = "Disease::DOID:" + str(entry.get())

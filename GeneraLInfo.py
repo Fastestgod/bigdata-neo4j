@@ -2,11 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from Neo4jSetup import get_driver
 import argparse
-<<<<<<< HEAD
 import threading
-=======
-
->>>>>>> 52bf6e1c3bbaf55ca1656c95abadb48b1fef02ac
 # Create a Neo4j driver instance
 driver = get_driver()
 
@@ -68,13 +64,6 @@ def run_query():
         print("\n".join(compound_names) if compound_names else "No new drugs found.")
         return "\n".join(compound_names) if compound_names else "No new drugs found."
 
-<<<<<<< HEAD
-# Parse command-line arguments
-parser = argparse.ArgumentParser(description="Run Neo4j Queries")
-parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
-parser.add_argument("-q2", action="store_true", help="Run Query 2")
-parser.add_argument("-id", type=str, help="Disease ID for Query 1")
-=======
     result = query_disease(disease_id)
     
     # Clear the existing content in the Text widget
@@ -91,41 +80,15 @@ parser.add_argument("-id", type=str, help="Disease ID for Query 1")
     else:
         output_text.insert(tk.END, "No data found.")
 
-def new_drugs():
-    result = run_query()
-    
-    # Update the output text label with the results
-    output_text.delete(1.0, tk.END)  # Clear the existing content in the Text widget
-    all_new_drugs=(f"New drugs for diseases:\n\n{result}")
-    output_text.insert(tk.END, all_new_drugs)  # Insert the new drugs into the Text widget
 
 # GUI Setup
-def use_gui():
-    root.title("Disease Query")
-    tk.Label(root, text="Enter Disease ID:").pack()
-    entry.pack()
-    tk.Button(root, text="Search", command=search).pack()
-    tk.Button(root, text="Find New Drugs", command=new_drugs).pack()
-    output_frame = tk.Frame(root)
-    output_frame.pack(padx=10, pady=10)
-    canvas = tk.Canvas(output_frame)
-    scrollbar = ttk.Scrollbar(output_frame, orient="vertical", command=canvas.yview)
-    canvas.configure(yscrollcommand=scrollbar.set)
-    output_container = tk.Frame(canvas)
-    canvas.create_window((0, 0), window=output_container, anchor="nw")
-    canvas.pack(side="left", fill="both", expand=True)
-    output_text = tk.Text(output_container, wrap="word", height=10, width=50)
-    output_text.pack()
-    root.mainloop()
->>>>>>> 52bf6e1c3bbaf55ca1656c95abadb48b1fef02ac
 
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run Neo4j Queries")
     parser.add_argument("-q1", action="store_true", help="Run Query 1 (requires -id)")
     parser.add_argument("-q2", action="store_true", help="Run Query 2")
-    parser.add_argument("-id", type=str, help="Disease ID for Query 1")
-    parser.add_argument("-gui", action="store_true", help="Run gui")
+    parser.add_argument("-i"d, type=str, help="Disease ID for Query 1")
     args = parser.parse_args()
 
     if args.q1 and args.id:
