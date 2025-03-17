@@ -121,4 +121,4 @@ if args.q1 and args.id:
 elif args.q2:
     run_query()
 else:
-    print("Usage: script.py -q1 -id <disease_id> OR script.py -q2")
+    print("Usage: GeneraLInfo.py -q1 -id <disease_id> OR GeneraLInfo.py -q2")
