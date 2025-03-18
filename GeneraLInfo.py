@@ -6,8 +6,7 @@ import threading
 # Create a Neo4j driver instance
 driver = get_driver()
 
-root = tk.Tk()
-entry = tk.Entry(root)
+
 
 def query_disease(disease_id):
     query = """
